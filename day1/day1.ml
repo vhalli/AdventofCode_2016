@@ -1,3 +1,5 @@
+#load "str.cma"
+
 type heading = North | South | East | West
 type direction = Left | Right
 type instruction = direction * int
@@ -33,8 +35,24 @@ let walk pos (dirn, dist) : position =
   let newhdg = turn dirn pos.heading in
   step {pos with heading = newhdg} dist
 
-let findHQ instructions =
+let findHQ instructions : position =
   List.fold_left walk initial_pos instructions
 
 let distance_from_origin pos : int =
   abs pos.x + abs pos.y
+
+let getinstructions filename : instruction list =
+  let rawinput = input_line (open_in filename) in
+  let input = Str.split (Str.regexp ", ") rawinput in
+  let parseint rawinst : int = 
+    int_of_string (String.sub rawinst 1 ((String.length rawinst)-1)) in
+  let str_to_inst rawinst : instruction =
+    match rawinst.[0] with
+    | 'R' -> (Right, parseint rawinst)
+    | 'L' -> (Left, parseint rawinst)
+    | _ -> raise (Invalid_argument "Unexpected character")
+  in
+  List.map str_to_inst input
+
+let d = distance_from_origin (findHQ (getinstructions "in.txt"));;
+print_int d
