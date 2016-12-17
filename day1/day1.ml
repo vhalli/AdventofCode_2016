@@ -35,3 +35,6 @@ let walk pos (dirn, dist) : position =
 
 let findHQ instructions =
   List.fold_left walk initial_pos instructions
+
+let distance_from_origin pos : int =
+  abs pos.x + abs pos.y
