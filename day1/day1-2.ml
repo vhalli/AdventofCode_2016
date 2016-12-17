@@ -31,9 +31,19 @@ let step pos dist : position =
   | East -> {pos with x = pos.x + dist}
   | West -> {pos with x = pos.x - dist}
 
-let walk pos (dirn, dist) : position =
+let rec verbosestep pos dist : position list =
+  if dist > 0 then
+    step pos dist :: verbosestep pos (dist-1)
+  else
+    []
+
+let walk pos (dirn, dist) : position list =
   let newhdg = turn dirn pos.heading in
-  step {pos with heading = newhdg} dist
+  verbosestep {pos with heading = newhdg} dist
+
+let verbosewalk poslist inst : position list =
+  let pos = List.hd poslist in
+  walk pos inst @ poslist
 
 let findHQ instructions : position =
   List.fold_left walk initial_pos instructions
