@@ -45,8 +45,17 @@ let verbosewalk poslist inst : position list =
   let pos = List.hd poslist in
   walk pos inst @ poslist
 
+let rec checkvisits = function
+  | p1::ps-> (try Some (List.find (function p2 -> p1.x=p2.x && p1.y=p2.y) ps)
+     with Not_found -> checkvisits ps)
+  | [] -> None
+
 let findHQ instructions : position =
-  List.fold_left walk initial_pos instructions
+  let path = List.fold_left verbosewalk [initial_pos] instructions
+  in
+  match checkvisits (List.rev path) with
+  | Some pos -> pos
+  | None -> List.hd path
 
 let distance_from_origin pos : int =
   abs pos.x + abs pos.y
