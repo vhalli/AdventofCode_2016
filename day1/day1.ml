@@ -31,12 +31,38 @@ let step pos dist : position =
   | East -> {pos with x = pos.x + dist}
   | West -> {pos with x = pos.x - dist}
 
-let walk pos (dirn, dist) : position =
+(* Return a list of all intermediate positions along with 
+ * the destination. *)
+let rec verbosestep pos dist : position list =
+  if dist > 0 then
+    step pos dist :: verbosestep pos (dist-1)
+  else
+    []
+
+let walk pos (dirn, dist) : position list =
   let newhdg = turn dirn pos.heading in
-  step {pos with heading = newhdg} dist
+  verbosestep {pos with heading = newhdg} dist
+
+(* Wrapper over `walk` to work with lists. *)
+let verbosewalk poslist inst : position list =
+  let pos = List.hd poslist in
+  walk pos inst @ poslist
+
+let rec checkvisits path =
+  match path with
+  | p1::ps-> (try Some (List.find (function p2 -> p1.x=p2.x && p1.y=p2.y) ps)
+     with Not_found -> checkvisits ps)
+  | [] -> None
 
 let findHQ instructions : position =
-  List.fold_left walk initial_pos instructions
+  let path = List.fold_left verbosewalk [initial_pos] instructions
+  in
+  (* Reverse path because the most recent position is at the
+   * head of the list and we need the earliest position that
+   * was visited twice. *)
+  match checkvisits (List.rev path) with
+  | Some pos -> pos
+  | None -> List.hd path
 
 let distance_from_origin pos : int =
   abs pos.x + abs pos.y
